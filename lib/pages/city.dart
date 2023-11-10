@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:weather/components/weather_result.dart';
+import 'package:weather/model/weather.dart';
+import 'package:weather/services/api.dart';
 
 class CityPage extends StatefulWidget {
   const CityPage({super.key});
@@ -17,6 +19,7 @@ class _CityPageState extends State<CityPage> {
   String errorMsg = '';
   bool isApiCalling = true;
   bool isError = false;
+  WeatherResult? result;
 
   @override
   Widget build(BuildContext context) {
@@ -35,22 +38,33 @@ class _CityPageState extends State<CityPage> {
           ElevatedButton(
             child: const Text("Get Weather"),
             onPressed: () async {
-              String url =
-                  'http://api.openweathermap.org/data/2.5/weather?q=${cityCtrl.text}&appid=32ad84d2a41f15df8af1a765bb38c530&units=metric';
-
-              var response = await http.get(Uri.parse(url));
-              print(response.statusCode);
-              if (response.statusCode == 200) {
-                isError = false;
-                weatherResult = jsonDecode(response.body);
-                temp = weatherResult!['main']['temp'];
-              } else {
+              try {
+                result = await getWeather(cityCtrl.text);
+              } on Exception catch (err) {
+                print(err);
                 isError = true;
-                errorMsg = jsonDecode(response.body)['message'];
-                print(errorMsg);
+                errorMsg = "City Not Found";
+                setState(() {});
               }
               isApiCalling = false;
+
               setState(() {});
+              // String url =
+              //     'http://api.openweathermap.org/data/2.5/weather?q=${cityCtrl.text}&appid=32ad84d2a41f15df8af1a765bb38c530&units=metric';
+
+              // var response = await http.get(Uri.parse(url));
+              // print(response.statusCode);
+              // if (response.statusCode == 200) {
+              //   isError = false;
+              //   weatherResult = jsonDecode(response.body);
+              //   temp = weatherResult!['main']['temp'];
+              // } else {
+              //   isError = true;
+              //   errorMsg = jsonDecode(response.body)['message'];
+              //   print(errorMsg);
+              // }
+              // isApiCalling = false;
+              // setState(() {});
             },
           ),
           Expanded(
@@ -59,7 +73,7 @@ class _CityPageState extends State<CityPage> {
                   ? const Text("")
                   : isError
                       ? Text(errorMsg.toUpperCase())
-                      : WeatherCard(temp: temp),
+                      : WeatherCard(temp: result!.main!.temp!),
             ),
           )
         ],

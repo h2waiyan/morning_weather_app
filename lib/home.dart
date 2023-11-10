@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: const Icon(Icons.location_on_outlined))
         ],
       ),
-      body: isCity ? const CityPage() : const LocationPage(),
+      body: isCity ? const LocationPage() : const CityPage(),
     );
   }
 }

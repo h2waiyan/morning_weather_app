@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:weather/components/weather_result.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LocationPage extends StatefulWidget {
   const LocationPage({super.key});
@@ -14,7 +15,7 @@ class _LocationPageState extends State<LocationPage> {
   @override
   void initState() {
     super.initState();
-    getWeather();
+    getLocation();
   }
 
   Map<String, dynamic>? weatherResult;
@@ -22,10 +23,11 @@ class _LocationPageState extends State<LocationPage> {
   String errorMsg = '';
   bool isApiCalling = true;
   bool isError = false;
+  Position? mylocation;
 
   getWeather() async {
     String url =
-        'https://api.openweathermap.org/data/2.5/weather?lat=22.92&lon=96.50&appid=a282b757c13c4bae4b14df933c62959c&units=metric';
+        'https://api.openweathermap.org/data/2.5/weather?lat=${mylocation!.latitude}&lon=${mylocation!.longitude}&appid=a282b757c13c4bae4b14df933c62959c&units=metric';
 
     var response = await http.get(Uri.parse(url));
     print(response.statusCode);
@@ -39,6 +41,20 @@ class _LocationPageState extends State<LocationPage> {
     }
     isApiCalling = false;
     setState(() {});
+  }
+
+  getLocation() async {
+    var permission = await Geolocator.checkPermission();
+    print(permission);
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    var location = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low);
+    setState(() {
+      mylocation = location;
+    });
+    getWeather();
   }
 
   @override
